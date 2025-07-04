@@ -85,3 +85,50 @@ const onScaleChange = (scale: number) => {
 | `source` | `PDFSourceDataOption` | - | PDF 数据源 |
 | `config` | `MobilePDFViewerConfig` | `{}` | 配置选项 |
 | `containerClass` | `string` | `''` | 容器自定
+
+
+
+## 组件暴露方法
+
+通过 `ref` 获取组件实例后，可以调用以下方法：
+
+| 方法名           | 说明                         | 参数                                   | 返回值         |
+| ---------------- | ---------------------------- | -------------------------------------- | -------------- |
+| `loadPDF`        | 加载指定的 PDF 文件          | `source`（可选，PDFSourceDataOption）  | `Promise<void>`|
+| `resetPosition`  | 重置缩放和位置到初始状态     | 无                                     | `void`         |
+| `getScale`       | 获取当前缩放比例             | 无                                     | `number`       |
+| `isLoading`      | 获取当前是否正在加载         | 无                                     | `boolean`      |
+| `getPageCount`   | 获取当前 PDF 页数            | 无                                     | `number`       |
+
+### 使用示例
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import MobilePDFViewer from './components/MobilePDFViewer.vue';
+
+const pdfViewerRef = ref();
+
+function reloadPDF() {
+  pdfViewerRef.value?.loadPDF({
+    url: 'https://example.com/your.pdf'
+  });
+}
+
+function resetView() {
+  pdfViewerRef.value?.resetPosition();
+}
+
+function getCurrentScale() {
+  const scale = pdfViewerRef.value?.getScale();
+  console.log('当前缩放比例:', scale);
+}
+</script>
+
+<template>
+  <MobilePDFViewer ref="pdfViewerRef" />
+  <button @click="reloadPDF">重新加载PDF</button>
+  <button @click="resetView">重置视图</button>
+  <button @click="getCurrentScale">获取缩放比例</button>
+</template>
+```
