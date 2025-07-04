@@ -30,12 +30,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/vue-mobile-pdf-viewer.git"
+    "url": "https://github.com/zhayes/mobile_pdf_viewer"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/vue-mobile-pdf-viewer/issues"
+    "url": "https://github.com/zhayes/mobile_pdf_viewer/issues"
   },
-  "homepage": "https://github.com/yourusername/vue-mobile-pdf-viewer#readme",
+  "homepage": "https://github.com/zhayes/mobile_pdf_viewer#readme",
   "peerDependencies": {
     "vue": "^3.0.0"
   },
