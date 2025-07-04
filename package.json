@@ -1,0 +1,56 @@
+{
+  "name": "vue-mobile-pdf-viewer",
+  "version": "0.0.1",
+  "description": "A mobile-optimized PDF viewer component for Vue 3 with touch gestures support",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "pdf",
+    "mobile",
+    "viewer",
+    "touch",
+    "gestures",
+    "pdfjs"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/vue-mobile-pdf-viewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/vue-mobile-pdf-viewer/issues"
+  },
+  "homepage": "https://github.com/yourusername/vue-mobile-pdf-viewer#readme",
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^5.3.31"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/node": "^24.0.10",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vue": "^3.5.17",
+    "vue-tsc": "^3.0.1"
+  },
+  "packageManager": "pnpm@10.3.0+sha1.6981f53a2d726323a7fd5f4ca5107102338511c8"
+}
