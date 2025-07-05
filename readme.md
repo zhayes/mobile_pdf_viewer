@@ -1,122 +1,157 @@
-# Vue Mobile PDF Viewer
+# Mobile PDF Viewer
 
-一个专为移动端优化的 Vue 3 PDF 查看器组件，支持触摸手势缩放、拖拽和双击操作。
+一个基于 Vue 3 的移动端 PDF 查看器组件，支持触摸手势、缩放、平移等功能。
 
-## 特性
+## 项目结构
 
-- 📱 **移动端优化**: 专为移动设备设计，支持触摸手势
-- 🔍 **手势支持**: 支持双指缩放、拖拽移动、双击缩放
-- ⚡ **高性能**: 使用 Canvas 渲染，支持高分辨率显示
-- 🎨 **可定制**: 提供丰富的配置选项
-- 📦 **轻量级**: 移除了非必要的依赖
-- 🔧 **TypeScript**: 完整的 TypeScript 支持
-
-## 安装
-
-```bash
-npm install vue-mobile-pdf-viewer
 ```
+mobile-pdf-viewer/
+├── types.ts              # 类型定义
+├── constants.ts          # 常量定义
+├── utils.ts              # 工具函数
+├── composables.ts        # 组合式函数
+├── touchHandlers.ts      # 触摸事件处理
+├── MobilePDFViewer.vue   # 主组件
+├── index.ts              # 导出文件
+└── README.md             # 使用说明
+```
+
+## 功能特性
+
+- ✅ 支持触摸手势（单指拖拽、双指缩放）
+- ✅ 支持双击缩放
+- ✅ 虚拟滚动优化，按需渲染页面
+- ✅ 进度条显示加载状态
+- ✅ 边界限制，防止过度拖拽
+- ✅ 高性能渲染，使用 IntersectionObserver
+- ✅ TypeScript 支持
+- ✅ 模块化设计，易于维护
 
 ## 使用方法
 
+### 基本使用
+
 ```vue
 <template>
-  <div style="height: 100vh;">
-    <MobilePDFViewer
-      :source="pdfSource"
-      :config="config"
-      @load-complete="onLoadComplete"
-      @load-error="onLoadError"
-      @scale-change="onScaleChange"
-    />
-  </div>
+  <MobilePDFViewer
+    :source="pdfSource"
+    :config="config"
+    @load-complete="onLoadComplete"
+    @scale-change="onScaleChange"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { MobilePDFViewer, type PDFSourceDataOption, type MobilePDFViewerConfig } from 'vue-mobile-pdf-viewer'
-import 'vue-mobile-pdf-viewer/dist/vue-mobile-pdf-viewer.css'
+import { ref } from 'vue';
+import { MobilePDFViewer, type MobilePDFViewerConfig } from './mobile-pdf-viewer';
 
-const pdfSource = ref<PDFSourceDataOption>({
-  url: 'path/to/your/file.pdf'
-})
+const pdfSource = ref('path/to/your/pdf/file.pdf');
 
-const config = ref<MobilePDFViewerConfig>({
+const config: MobilePDFViewerConfig = {
   resolutionMultiplier: 3,
   minScale: 0.5,
   maxScale: 4,
   showProgress: true,
   progressColor: '#007bff'
-})
+};
 
 const onLoadComplete = (pageCount: number) => {
-  console.log(`PDF loaded with ${pageCount} pages`)
-}
-
-const onLoadError = (error: Error) => {
-  console.error('PDF load error:', error)
-}
+  console.log(`PDF 加载完成，共 ${pageCount} 页`);
+};
 
 const onScaleChange = (scale: number) => {
-  console.log('Scale changed to:', scale)
-}
+  console.log(`当前缩放比例: ${scale}`);
+};
 </script>
 ```
 
-## API 文档
+### 配置选项
 
-### Props
-
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `source` | `PDFSourceDataOption` | - | PDF 数据源 |
-| `config` | `MobilePDFViewerConfig` | `{}` | 配置选项 |
-| `containerClass` | `string` | `''` | 容器自定
-
-
-
-## 组件暴露方法
-
-通过 `ref` 获取组件实例后，可以调用以下方法：
-
-| 方法名           | 说明                         | 参数                                   | 返回值         |
-| ---------------- | ---------------------------- | -------------------------------------- | -------------- |
-| `loadPDF`        | 加载指定的 PDF 文件          | `source`（可选，PDFSourceDataOption）  | `Promise<void>`|
-| `resetPosition`  | 重置缩放和位置到初始状态     | 无                                     | `void`         |
-| `getScale`       | 获取当前缩放比例             | 无                                     | `number`       |
-| `isLoading`      | 获取当前是否正在加载         | 无                                     | `boolean`      |
-| `getPageCount`   | 获取当前 PDF 页数            | 无                                     | `number`       |
-
-### 使用示例
-
-```vue
-<script setup lang="ts">
-import { ref } from 'vue';
-import { MobilePDFViewer } from 'vue-mobile-pdf-viewer';
-import 'vue-mobile-pdf-viewer/dist/vue-mobile-pdf-viewer.css'
-
-const pdfViewerRef = ref<typeof MobilePDFViewer>();
-
-function reloadPDF() {
-  pdfViewerRef.value?.loadPDF({
-    url: 'https://example.com/your.pdf'
-  });
+```typescript
+interface MobilePDFViewerConfig {
+  resolutionMultiplier?: number;    // 分辨率倍数，默认 3
+  minScale?: number;                // 最小缩放比例，默认 0.5
+  maxScale?: number;                // 最大缩放比例，默认 4
+  scaleStep?: number;               // 缩放步长，默认 0.1
+  dampingFactor?: number;           // 阻尼系数，默认 0.85
+  boundaryPadding?: number;         // 边界填充，默认 50
+  pinchSensitivity?: number;        // 捏合敏感度，默认 0.6
+  maxScaleChange?: number;          // 最大缩放变化，默认 0.25
+  showProgress?: boolean;           // 是否显示进度条，默认 true
+  progressColor?: string;           // 进度条颜色，默认 '#007bff'
+  viewportBufferPages?: number;     // 视口缓冲页数，默认 2
 }
-
-function resetView() {
-  pdfViewerRef.value?.resetPosition();
-}
-
-function getCurrentScale() {
-  const scale = pdfViewerRef.value?.getScale();
-  console.log('当前缩放比例:', scale);
-}
-</script>
-
-<template>
-  <MobilePDFViewer ref="pdfViewerRef" />
-  <button @click="reloadPDF">重新加载PDF</button>
-  <button @click="resetView">重置视图</button>
-  <button @click="getCurrentScale">获取缩放比例</button>
-</template>
 ```
+
+### 事件
+
+- `load-start`: 开始加载 PDF
+- `load-progress`: 加载进度更新 `(progress: number)`
+- `load-complete`: 加载完成 `(pageCount: number)`
+- `load-error`: 加载错误 `(error: Error)`
+- `scale-change`: 缩放变化 `(scale: number)`
+
+### 暴露的方法
+
+```typescript
+const pdfViewerRef = ref();
+
+// 加载 PDF
+pdfViewerRef.value?.loadPDF(source);
+
+// 重置位置
+pdfViewerRef.value?.resetPosition();
+
+// 获取当前缩放比例
+const scale = pdfViewerRef.value?.getScale();
+
+// 获取是否正在加载
+const loading = pdfViewerRef.value?.isLoading();
+
+// 获取页面数量
+const pageCount = pdfViewerRef.value?.getPageCount();
+```
+
+## 架构设计
+
+### 1. 类型定义 (types.ts)
+定义了所有的 TypeScript 接口和类型，确保类型安全。
+
+### 2. 常量定义 (constants.ts)
+集中管理所有的常量配置，方便统一修改。
+
+### 3. 工具函数 (utils.ts)
+提供纯函数工具，包括距离计算、边界限制、Canvas 创建等。
+
+### 4. 组合式函数 (composables.ts)
+将相关的响应式逻辑封装成可复用的组合式函数：
+- `useTransform`: 处理变换相关逻辑
+- `usePDFRenderer`: 处理 PDF 渲染相关逻辑
+- `useProgress`: 处理进度条相关逻辑
+
+### 5. 触摸事件处理 (touchHandlers.ts)
+封装了所有触摸事件处理逻辑，使用类的方式组织代码。
+
+### 6. 主组件 (MobilePDFViewer.vue)
+组合所有功能模块，提供完整的 PDF 查看器功能。
+
+## 优化特性
+
+1. **虚拟滚动**: 使用 IntersectionObserver 实现按需渲染
+2. **性能优化**: 使用 requestAnimationFrame 优化变换动画
+3. **边界缓存**: 缓存边界计算结果，避免重复计算
+4. **内存管理**: 及时清理 Canvas 元素和事件监听器
+5. **响应式设计**: 支持不同屏幕尺寸的移动设备
+
+## 依赖
+
+- Vue 3
+- pdfjs-dist
+- uid
+
+## 注意事项
+
+1. 确保 PDF.js Worker 路径正确配置
+2. 在移动设备上测试触摸手势功能
+3. 根据实际需求调整 `resolutionMultiplier` 参数
+4. 大文件加载时注意内存使用情况

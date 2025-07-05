@@ -15,10 +15,11 @@ export default defineConfig({
       insertTypesEntry: true,
       copyDtsFiles: true,
       include: ['src/**/*'],
-      exclude: ['src/**/*.test.*', 'src/**/*.spec.*']
+      exclude: ['src/**/*.test.*', 'src/**/*.spec.*', 'src/demo/*']
     })
   ],
   build: {
+    sourcemap: false,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'VueMobilePDFViewer',
@@ -26,11 +27,12 @@ export default defineConfig({
       formats: ['es', 'umd']
     },
     rollupOptions: {
-      external: ['vue', 'pdfjs-dist'],
+      external: ['vue', 'pdfjs-dist', 'uid'],
       output: {
         globals: {
           vue: 'Vue',
-          'pdfjs-dist': 'pdfjsLib'
+          'pdfjs-dist': 'pdfjsLib',
+          'uid': 'uid'
         }
       },
       plugins: [
