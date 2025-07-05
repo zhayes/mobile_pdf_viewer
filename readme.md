@@ -19,20 +19,6 @@ npm install vue-mobile-pdf-viewer
 
 ## 使用方法
 
-### 全局注册
-
-```typescript
-import { createApp } from 'vue'
-import VueMobilePDFViewer from 'vue-mobile-pdf-viewer'
-import App from './App.vue'
-
-const app = createApp(App)
-app.use(VueMobilePDFViewer)
-app.mount('#app')
-```
-
-### 局部导入
-
 ```vue
 <template>
   <div style="height: 100vh;">
@@ -49,6 +35,7 @@ app.mount('#app')
 <script setup lang="ts">
 import { ref } from 'vue'
 import { MobilePDFViewer, type PDFSourceDataOption, type MobilePDFViewerConfig } from 'vue-mobile-pdf-viewer'
+import 'vue-mobile-pdf-viewer/dist/vue-mobile-pdf-viewer.css'
 
 const pdfSource = ref<PDFSourceDataOption>({
   url: 'path/to/your/file.pdf'
@@ -105,9 +92,10 @@ const onScaleChange = (scale: number) => {
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import MobilePDFViewer from './components/MobilePDFViewer.vue';
+import { MobilePDFViewer } from 'vue-mobile-pdf-viewer';
+import 'vue-mobile-pdf-viewer/dist/vue-mobile-pdf-viewer.css'
 
-const pdfViewerRef = ref();
+const pdfViewerRef = ref<typeof MobilePDFViewer>();
 
 function reloadPDF() {
   pdfViewerRef.value?.loadPDF({

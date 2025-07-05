@@ -11,7 +11,7 @@
     "README.md"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "prepublishOnly": "npm run build"
@@ -40,7 +40,8 @@
     "vue": "^3.0.0"
   },
   "dependencies": {
-    "pdfjs-dist": "^5.3.31"
+    "pdfjs-dist": "^5.3.31",
+    "uid": "^2.0.2"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
