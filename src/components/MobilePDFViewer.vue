@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { MobilePDFViewerProps, MobilePDFViewerEmits } from './types';
 import { DEFAULT_CONFIG } from './constants';
 import { useTransform, usePDFRenderer, useProgress } from './composables';
@@ -111,10 +111,6 @@ onMounted(() => {
     inner.addEventListener('touchend', touchHandlers.handleTouchEnd, { passive: true });
     inner.addEventListener('dblclick', touchHandlers.handleDoubleClickMouse);
   }
-
-  if (props.source) {
-    loadPDFDocument(props.source);
-  }
 });
 
 // 组件卸载
@@ -129,6 +125,15 @@ onUnmounted(() => {
     inner.removeEventListener('dblclick', touchHandlers.handleDoubleClickMouse);
   }
 });
+
+watch(() => props.source, (source) => {
+  if (source) {
+    loadPDFDocument(props.source);
+  }
+
+},{
+  immediate: true
+})
 
 // 暴露方法
 defineExpose({

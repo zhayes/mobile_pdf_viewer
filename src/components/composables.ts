@@ -219,7 +219,6 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       const loadingTask = getDocument(source);
       const pdf = await loadingTask.promise;
 
-      const fileKey = uid();
       await nextTick();
 
       const wrapperWidth = innerRef?.offsetWidth || 800;
@@ -229,7 +228,7 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       baseScale.value = (wrapperWidth / viewport.width) * config.resolutionMultiplier;
       canvasList.value = Array(pdf.numPages).fill(null).map(() => ({
         renderStatus: 'pending' as const,
-        key: fileKey,
+        key: uid(),
         canvas: null,
         divEl: null
       }));
