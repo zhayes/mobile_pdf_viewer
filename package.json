@@ -1,9 +1,9 @@
 {
-  "name": "vue-mobile-pdf-viewer",
-  "version": "0.0.1",
+  "name": "vue3-mobile-pdf-viewer",
+  "version": "0.0.2",
   "description": "A mobile-optimized PDF viewer component for Vue 3 with touch gestures support",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "files": [

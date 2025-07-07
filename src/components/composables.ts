@@ -1,5 +1,5 @@
 import { ref, computed, onUnmounted, nextTick } from 'vue';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import { getDocument, GlobalWorkerOptions, PDFDocumentProxy } from 'pdfjs-dist';
 import { uid } from 'uid';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {
@@ -174,7 +174,7 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
   /**
    * 渲染单页
    */
-  const renderPage = async (pdf: any, pageNum: number, canvas: HTMLCanvasElement) => {
+  const renderPage = async (pdf: PDFDocumentProxy, pageNum: number, canvas: HTMLCanvasElement) => {
     const page = await pdf.getPage(pageNum);
     const viewport = page.getViewport({ scale: baseScale.value });
 
@@ -228,7 +228,7 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       baseScale.value = (wrapperWidth / viewport.width) * config.resolutionMultiplier;
       canvasList.value = Array(pdf.numPages).fill(null).map(() => ({
         renderStatus: 'pending' as const,
-        key: uid(),
+        key:  uid(),
         canvas: null,
         divEl: null
       }));
@@ -238,13 +238,16 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       // 初始化IntersectionObserver
       observer.value = new IntersectionObserver((entries) => {
         entries.forEach(async (entry) => {
+
           const index = canvasList.value.findIndex(c => c.divEl === entry.target);
+
           if (index === -1) return;
 
           const canvas = canvasList.value[index].canvas || createCanvas(canvasClass);
           canvasList.value[index].canvas = canvas;
 
           if (entry.isIntersecting && entry.target instanceof HTMLDivElement) {
+            console.log("index", index, wrapperRef)
             if (!entry.target.contains(canvas)) {
               entry.target.appendChild(canvas);
             }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { shallowRef } from "vue";
-import MobilePDFViewer from "../index";
+import MobilePDFViewer from '../index';
 
 const pdf_ref = shallowRef<typeof MobilePDFViewer>();
 

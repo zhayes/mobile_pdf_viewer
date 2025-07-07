@@ -43,7 +43,8 @@ mobile-pdf-viewer/
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { MobilePDFViewer, type MobilePDFViewerConfig } from './mobile-pdf-viewer';
+import MobilePDFViewer, { type MobilePDFViewerConfig } from 'vue3-mobile-pdf-viewer';
+import 'vue3-mobile-pdf-viewer/dist/vue3-mobile-pdf-viewer.css'
 
 const pdfSource = ref('path/to/your/pdf/file.pdf');
 
