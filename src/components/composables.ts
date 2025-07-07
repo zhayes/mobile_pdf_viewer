@@ -190,6 +190,8 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       viewport,
     }).promise;
 
+    page.cleanup();
+
     canvasList.value[pageNum - 1].renderStatus = 'complete';
 
     if (!divElHeight.value) {
