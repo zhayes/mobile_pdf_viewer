@@ -59,6 +59,7 @@ const initializeTouchHandlers = () => {
     emit,
     {
       wrapperRef: () => wrapperRef.value,
+      innerRef: ()=>innerRef.value,
       scale: () => scale.value,
       translateX: () => translateX.value,
       translateY: () => translateY.value,
@@ -178,6 +179,7 @@ defineExpose({
   position: relative;
   width: 100%;
   height: 100%;
+  min-height: 50px;
 }
 
 .mobile-pdf-container {

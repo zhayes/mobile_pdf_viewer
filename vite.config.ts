@@ -4,6 +4,7 @@ import dts from 'vite-plugin-dts';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import terser from '@rollup/plugin-terser';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,7 +17,8 @@ export default defineConfig({
       copyDtsFiles: true,
       include: ['src/**/*'],
       exclude: ['src/**/*.test.*', 'src/**/*.spec.*', 'src/demo/*']
-    })
+    }),
+    cssInjectedByJsPlugin()
   ],
   build: {
     sourcemap: false,

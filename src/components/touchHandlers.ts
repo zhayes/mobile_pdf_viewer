@@ -22,6 +22,7 @@ export class TouchHandlers {
     private emit: MobilePDFViewerEmits,
     private getters: {
       wrapperRef: () => HTMLElement | null;
+      innerRef: () => HTMLElement | null;
       scale: () => number;
       translateX: () => number;
       translateY: () => number;
@@ -36,7 +37,9 @@ export class TouchHandlers {
       applyTransform: (scale: number, x: number, y: number, immediate?: boolean) => void;
       resetPosition: (emit: MobilePDFViewerEmits) => void;
     }
-  ) {}
+  ) {
+    console.log(this.actions)
+  }
 
   /**
    * 处理触摸开始事件
@@ -72,7 +75,7 @@ export class TouchHandlers {
           newX,
           newY,
           this.getters.wrapperRef(),
-          null
+          this.getters.innerRef()
         );
         this.actions.applyTransform(this.getters.scale(), constrained.x, constrained.y, true);
       }

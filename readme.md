@@ -33,18 +33,20 @@ mobile-pdf-viewer/
 
 ```vue
 <template>
-  <MobilePDFViewer
-    :source="pdfSource"
-    :config="config"
-    @load-complete="onLoadComplete"
-    @scale-change="onScaleChange"
-  />
+    <!-- 注意这里应该需要个父容器高度，MobilePDFViewer默认铺满，否则不能按需渲染。 -->
+    <div style="height: 100vh">
+        <MobilePDFViewer
+          :source="pdfSource"
+          :config="config"
+          @load-complete="onLoadComplete"
+          @scale-change="onScaleChange"
+        />
+    </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import MobilePDFViewer, { type MobilePDFViewerConfig } from 'vue3-mobile-pdf-viewer';
-import 'vue3-mobile-pdf-viewer/dist/vue3-mobile-pdf-viewer.css'
 
 const pdfSource = ref('path/to/your/pdf/file.pdf');
 

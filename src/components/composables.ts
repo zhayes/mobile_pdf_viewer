@@ -249,7 +249,6 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
           canvasList.value[index].canvas = canvas;
 
           if (entry.isIntersecting && entry.target instanceof HTMLDivElement) {
-            console.log("index", index, wrapperRef)
             if (!entry.target.contains(canvas)) {
               entry.target.appendChild(canvas);
             }
