@@ -42,7 +42,6 @@ const {
   canvasList,
   isLoading,
   loadingProgress,
-  divElHeight,
   loadPDF,
   cleanupObserver
 } = usePDFRenderer(mergedConfig.value);
@@ -167,7 +166,6 @@ defineExpose({
             v-for="(item, index) in canvasList" :key="item.key"
             :ref="(el: any) => canvasList[index] ? canvasList[index].divEl = el as HTMLDivElement : null"
             class="canvas_wrap_div"
-            :style="{ height: divElHeight, minHeight: '200px' }"
         />
       </div>
     </div>
@@ -202,6 +200,7 @@ defineExpose({
 .canvas_wrap_div {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin: 10px auto;
+  min-height: 200px;
 }
 
 :deep(.mobile-pdf-canvas) {

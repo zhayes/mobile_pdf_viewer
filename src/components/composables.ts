@@ -168,7 +168,6 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
   const isLoading = ref(false);
   const loadingProgress = ref(0);
   const baseScale = ref(1);
-  const divElHeight = ref<string>();
   const observer = ref<IntersectionObserver | null>(null);
 
   /**
@@ -193,10 +192,7 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
     page.cleanup();
 
     canvasList.value[pageNum - 1].renderStatus = 'complete';
-
-    if (!divElHeight.value) {
-      divElHeight.value = (viewport.height / config.resolutionMultiplier) + 'px';
-    }
+    canvasList.value[pageNum - 1].divEl!.style.height = (viewport.height / config.resolutionMultiplier) + 'px';
   };
 
   /**
@@ -312,7 +308,6 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
     isLoading,
     loadingProgress,
     baseScale,
-    divElHeight,
     loadPDF,
     cleanupObserver
   };
