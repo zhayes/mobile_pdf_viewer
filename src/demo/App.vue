@@ -9,7 +9,7 @@ const inputFile = async(e:any) => {
   const file = target.files?.[0] as File;
 
   const buffer = await file.arrayBuffer();
-
+  pdf_ref.value!.resetPosition();
   pdf_ref.value!.loadPDF(buffer);
 
 }

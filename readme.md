@@ -22,8 +22,7 @@
     <!-- 注意这里应该需要个父容器高度，MobilePDFViewer默认铺满，否则不能按需渲染。 -->
     <div style="height: 100vh">
         <MobilePDFViewer
-          :source="pdfSource"
-          :config="config"
+          ref="pdfViewerRef"
           @load-complete="onLoadComplete"
           @scale-change="onScaleChange"
         />
@@ -31,18 +30,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import MobilePDFViewer, { type MobilePDFViewerConfig } from 'vue3-mobile-pdf-viewer';
-
-const pdfSource = ref('path/to/your/pdf/file.pdf');
-
-const config: MobilePDFViewerConfig = {
-  resolutionMultiplier: 3,
-  minScale: 0.5,
-  maxScale: 4,
-  showProgress: true,
-  progressColor: '#007bff'
-};
+import { ref, onMounted } from 'vue';
+import MobilePDFViewer, { type PDFSourceDataOption } from 'vue3-mobile-pdf-viewer';
+const pdfViewerRef = ref();
 
 const onLoadComplete = (pageCount: number) => {
   console.log(`PDF 加载完成，共 ${pageCount} 页`);
@@ -51,6 +41,13 @@ const onLoadComplete = (pageCount: number) => {
 const onScaleChange = (scale: number) => {
   console.log(`当前缩放比例: ${scale}`);
 };
+
+
+onMounted(()=>{
+  const pdfSource = ref<PDFSourceDataOption>('path/to/your/pdf/file.pdf');
+
+  pdfViewerRef.value?.loadPDF(source);
+})
 </script>
 ```
 

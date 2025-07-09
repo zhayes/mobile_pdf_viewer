@@ -228,6 +228,9 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       const viewport = page.getViewport({ scale: 1 });
 
       baseScale.value = (wrapperWidth / viewport.width) * config.resolutionMultiplier;
+
+      cleanupObserver();
+
       canvasList.value = Array(pdf.numPages).fill(null).map(() => ({
         renderStatus: 'pending' as const,
         key:  uid(),
@@ -292,10 +295,12 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
    * 清理Observer
    */
   const cleanupObserver = () => {
-    if (observer.value) {
-      observer.value.disconnect();
-      observer.value = null;
-    }
+    try {
+      if (observer.value) {
+        observer.value.disconnect();
+        observer.value = null;
+      }
+    } catch (err) { }
   };
 
   onUnmounted(() => {
