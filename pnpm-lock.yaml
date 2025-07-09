@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       pdfjs-dist:
-        specifier: ^5.3.31
+        specifier: 5.3.31
         version: 5.3.31
       uid:
         specifier: ^2.0.2
