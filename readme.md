@@ -2,20 +2,6 @@
 
 一个基于 Vue 3 的移动端 PDF 查看器组件，支持触摸手势、缩放、平移等功能。
 
-## 项目结构
-
-```
-mobile-pdf-viewer/
-├── types.ts              # 类型定义
-├── constants.ts          # 常量定义
-├── utils.ts              # 工具函数
-├── composables.ts        # 组合式函数
-├── touchHandlers.ts      # 触摸事件处理
-├── MobilePDFViewer.vue   # 主组件
-├── index.ts              # 导出文件
-└── README.md             # 使用说明
-```
-
 ## 功能特性
 
 - ✅ 支持触摸手势（单指拖拽、双指缩放）

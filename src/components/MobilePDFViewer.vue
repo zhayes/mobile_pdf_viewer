@@ -58,8 +58,8 @@ const initializeTouchHandlers = () => {
     mergedConfig.value,
     emit,
     {
-      wrapperRef: () => wrapperRef.value,
-      innerRef: ()=>innerRef.value,
+      wrapperRef: () => wrapperRef.value!,
+      innerRef: ()=>innerRef.value!,
       scale: () => scale.value,
       translateX: () => translateX.value,
       translateY: () => translateY.value,

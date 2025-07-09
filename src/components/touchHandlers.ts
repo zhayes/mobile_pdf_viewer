@@ -21,8 +21,8 @@ export class TouchHandlers {
     private config: Required<MobilePDFViewerConfig>,
     private emit: MobilePDFViewerEmits,
     private getters: {
-      wrapperRef: () => HTMLElement | null;
-      innerRef: () => HTMLElement | null;
+      wrapperRef: () => HTMLElement;
+      innerRef: () => HTMLElement;
       scale: () => number;
       translateX: () => number;
       translateY: () => number;
@@ -33,7 +33,7 @@ export class TouchHandlers {
       setDragging: (value: boolean) => void;
       setPinching: (value: boolean) => void;
       clearBoundaryCache: () => void;
-      constrainTranslateForRefs: (x: number, y: number, wrapperRef: HTMLElement | null, innerRef: HTMLElement | null) => { x: number; y: number };
+      constrainTranslateForRefs: (x: number, y: number, wrapperRef: HTMLElement, innerRef: HTMLElement) => { x: number; y: number };
       applyTransform: (scale: number, x: number, y: number, immediate?: boolean) => void;
       resetPosition: (emit: MobilePDFViewerEmits) => void;
     }
@@ -110,7 +110,7 @@ export class TouchHandlers {
           newX,
           newY,
           this.getters.wrapperRef(),
-          null
+          this.getters.innerRef()
         );
         this.actions.applyTransform(newScale, constrained.x, constrained.y, true);
       }
@@ -210,7 +210,7 @@ export class TouchHandlers {
           newX,
           newY,
           this.getters.wrapperRef(),
-          null
+          this.getters.innerRef()
         );
         this.actions.applyTransform(newScale, constrained.x, constrained.y);
 
