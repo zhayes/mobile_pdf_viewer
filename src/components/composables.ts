@@ -1,14 +1,13 @@
-import { ref, computed, onUnmounted, nextTick, ShallowRef, shallowRef } from 'vue';
-import { getDocument, GlobalWorkerOptions, PDFDocumentProxy, type PDFDocumentLoadingTask } from 'pdfjs-dist';
+import { ref, computed, onUnmounted, nextTick, shallowRef } from 'vue';
+import { getDocument, GlobalWorkerOptions, PDFDocumentProxy } from 'pdfjs-dist';
 import { uid } from 'uid';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {
   CanvasItem,
-  TransformQueue,
   BoundaryLimits,
   MobilePDFViewerConfig,
   MobilePDFViewerEmits,
-  PDFSourceDataOption
+  PDFSourceDataOption,
 } from './types';
 
 import {
@@ -18,11 +17,11 @@ import {
   createCanvas
 } from './utils';
 
-// 设置PDF.js worker
+// 设置 PDF.js 的 worker 地址
 GlobalWorkerOptions.workerSrc = workerUrl;
 
 /**
- * 变换相关的组合式函数
+ * 处理变换（平移、缩放）的组合式函数。
  */
 export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
   const scale = ref(1);
@@ -31,7 +30,7 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
   const isDragging = ref(false);
   const isPinching = ref(false);
 
-  // For inertial scrolling
+  // 用于惯性滚动
   const velocityX = ref(0);
   const velocityY = ref(0);
   const animationFrame = ref<number | null>(null);
@@ -79,16 +78,13 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
 
   const startInertialScroll = (vx: number, vy: number) => {
     stopInertialScroll();
-    velocityX.value = vx * 25; // Velocity multiplier for a better feel
+    velocityX.value = vx * 25; // 速度乘数，用于改善手感
     velocityY.value = vy * 25;
     if (Math.abs(vx) > 0.1 || Math.abs(vy) > 0.1) {
       animationFrame.value = requestAnimationFrame(animationLoop);
     }
   };
 
-  /**
-   * 应用变换
-   */
   const applyTransform = (newScale: number, newX: number, newY: number) => {
     stopInertialScroll();
     scale.value = newScale;
@@ -96,9 +92,6 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
     translateY.value = newY;
   };
 
-  /**
-   * 获取边界限制
-   */
   const getBoundaryLimitsForRefs = (
     wrapperRef: HTMLElement | null,
     innerRef: HTMLElement | null
@@ -118,16 +111,13 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
     return limits;
   };
 
-  /**
-   * 限制平移范围
-   */
   const constrainTranslateForRefs = (
     x: number,
     y: number,
     wrapperRef: HTMLElement | null,
     innerRef: HTMLElement | null
   ) => {
-    // Cache refs for the animation loop
+    // 为动画循环缓存引用
     _wrapperRef = wrapperRef;
     _innerRef = innerRef;
 
@@ -135,9 +125,6 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
     return constrainTranslate(x, y, boundaries);
   };
 
-  /**
-   * 重置位置
-   */
   const resetPosition = (emit: MobilePDFViewerEmits) => {
     stopInertialScroll();
     applyTransform(1, 0, 0);
@@ -146,16 +133,10 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
     emit('scale-change', 1);
   };
 
-  /**
-   * 清理边界缓存
-   */
   const clearBoundaryCache = () => {
     cachedBoundaryLimits = null;
   };
 
-  /**
-   * 计算变换样式
-   */
   const transformStyle = computed(() => {
     return {
       transform: `translate3d(${translateX.value}px, ${translateY.value}px, 0) scale(${scale.value})`,
@@ -167,9 +148,7 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
   });
 
   onUnmounted(() => {
-    if (animationFrame.value) {
-      cancelAnimationFrame(animationFrame.value);
-    }
+    stopInertialScroll();
   });
 
   return {
@@ -189,7 +168,7 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
 };
 
 /**
- * PDF渲染相关的组合式函数
+ * 处理 PDF 渲染逻辑的组合式函数。
  */
 export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
   const canvasList = ref<CanvasItem[]>([]);
@@ -200,32 +179,33 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
   const pdfDoc = shallowRef<PDFDocumentProxy | null>(null);
 
   /**
-   * 渲染单页
+   * 将单个页面渲染到 canvas 上。
    */
   const renderPage = async (pdf: PDFDocumentProxy, pageNum: number, canvas: HTMLCanvasElement) => {
     const page = await pdf.getPage(pageNum);
     const viewport = page.getViewport({ scale: baseScale.value });
-
     const context = canvas.getContext('2d')!;
+
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     canvas.style.width = `100%`;
 
-    canvasList.value[pageNum - 1].renderStatus = 'loading';
+    const item = canvasList.value[pageNum - 1];
+    item.renderStatus = 'loading';
 
-    await page.render({
-      canvasContext: context,
-      viewport,
-    }).promise;
+    await page.render({ canvasContext: context, viewport }).promise;
 
+    // 关键：清理页面资源，防止内存泄漏。
     page.cleanup();
 
-    canvasList.value[pageNum - 1].renderStatus = 'complete';
-    canvasList.value[pageNum - 1].divEl!.style.height = (viewport.height / config.resolutionMultiplier) + 'px';
+    item.renderStatus = 'complete';
+    if(item.divEl) {
+        item.divEl.style.height = (viewport.height / config.resolutionMultiplier) + 'px';
+    }
   };
 
   /**
-   * 初始化PDF加载
+   * 初始化并加载新的 PDF 文档。
    */
   const loadPDF = async (
     source: PDFSourceDataOption,
@@ -243,10 +223,13 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
         wrapperRef.scrollTop = 0;
       }
 
+      const loadingTask = getDocument(source);
+      const newPdfDoc = await loadingTask.promise;
+
+      // 只有在新 PDF 成功加载后，才清理旧的资源。
       cleanupPDF();
 
-      const loadingTask = getDocument(source);
-      pdfDoc.value = await loadingTask.promise;
+      pdfDoc.value = newPdfDoc;
       const pdf = pdfDoc.value;
 
       await nextTick();
@@ -254,6 +237,7 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       const wrapperWidth = innerRef?.offsetWidth || 800;
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 1 });
+      page.cleanup(); // 清理用于获取尺寸的页面
 
       baseScale.value = (wrapperWidth / viewport.width) * config.resolutionMultiplier;
 
@@ -266,43 +250,46 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
 
       await nextTick();
 
-      // 初始化IntersectionObserver
+      // 设置 IntersectionObserver 用于虚拟滚动。
       observer.value = new IntersectionObserver((entries) => {
         entries.forEach(async (entry) => {
-
           const index = canvasList.value.findIndex(c => c.divEl === entry.target);
-
           if (index === -1) return;
 
-          const canvas = canvasList.value[index].canvas || createCanvas(canvasClass);
-          canvasList.value[index].canvas = canvas;
+          const item = canvasList.value[index];
 
-          if (entry.isIntersecting && entry.target instanceof HTMLDivElement) {
-            if (!entry.target.contains(canvas)) {
+          if (entry.isIntersecting) {
+            // 目标进入视口，进行渲染。
+            const canvas = item.canvas || createCanvas(canvasClass);
+            item.canvas = canvas;
+
+            if (entry.target instanceof HTMLDivElement && !entry.target.contains(canvas)) {
               entry.target.appendChild(canvas);
             }
 
-            if (canvasList.value[index].renderStatus === 'pending') {
+            if (item.renderStatus === 'pending') {
               await renderPage(pdf, index + 1, canvas);
               updateProgress((index + 1) / pdf.numPages, loadingProgress, emit);
             }
           } else {
-            if (canvasList.value[index].renderStatus === 'complete' && entry.target.contains(canvas)) {
+            // 目标离开视口，无论渲染状态如何都执行清理。
+            const canvas = item.canvas;
+            if (canvas && entry.target instanceof HTMLDivElement && entry.target.contains(canvas)) {
               entry.target.removeChild(canvas);
-              canvasList.value[index].canvas = null;
-              canvasList.value[index].renderStatus = 'pending';
+              item.canvas = null;
+              item.renderStatus = 'pending';
             }
           }
         });
       }, {
         root: wrapperRef,
-        rootMargin: '100% 0px',
+        rootMargin: '100% 0px', // 预加载距离视口高度 100% 的页面
         threshold: 0.1
       });
 
-      canvasList.value.forEach((canvas) => {
-        if (canvas.divEl) {
-          observer.value!.observe(canvas.divEl);
+      canvasList.value.forEach((item) => {
+        if (item.divEl) {
+          observer.value!.observe(item.divEl);
         }
       });
 
@@ -318,26 +305,31 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
   };
 
   /**
-   * 清理Observer
+   * 清理 IntersectionObserver。
    */
   const cleanupObserver = () => {
-    try {
-      if (observer.value) {
-        observer.value.disconnect();
-        observer.value = null;
-      }
-    } catch (err) { }
+    if (observer.value) {
+      // 在断开连接前取消观察所有目标，以防止内存泄漏。
+      canvasList.value.forEach(item => {
+        if (item.divEl) {
+          observer.value!.unobserve(item.divEl);
+        }
+      });
+      observer.value.disconnect();
+      observer.value = null;
+    }
   };
 
   /**
-   * 清理PDF相关资源
+   * 清理所有 PDF 相关的资源。
    */
   const cleanupPDF = () => {
+    cleanupObserver();
     if (pdfDoc.value) {
       pdfDoc.value.destroy();
       pdfDoc.value = null;
     }
-    cleanupObserver();
+    canvasList.value = [];
   };
 
   onUnmounted(() => {
@@ -348,7 +340,6 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
     canvasList,
     isLoading,
     loadingProgress,
-    baseScale,
     loadPDF,
     cleanupObserver
   };

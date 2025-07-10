@@ -33,12 +33,6 @@ export interface CanvasItem {
   key?: string;
 }
 
-export interface TransformQueue {
-  scale: number;
-  x: number;
-  y: number;
-}
-
 export interface BoundaryLimits {
   minX: number;
   maxX: number;
