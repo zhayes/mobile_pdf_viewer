@@ -169,13 +169,14 @@ const isPCByTouch = ()=>{
     >
       <div
         ref="innerRef"
-        :style="transformStyle"
+        style="transformStyle"
         class="pdf-inner"
       >
         <div
             v-for="(item, index) in canvasList" :key="item.key"
             :ref="(el: any) => canvasList[index] ? canvasList[index].divEl = el as HTMLDivElement : null"
             class="canvas_wrap_div"
+            :style="{height: '100vh'}"
         />
       </div>
     </div>
@@ -210,7 +211,6 @@ const isPCByTouch = ()=>{
 .canvas_wrap_div {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin: 10px auto;
-  min-height: 200px;
 }
 
 :deep(.mobile-pdf-canvas) {
