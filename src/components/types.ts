@@ -13,7 +13,6 @@ export interface MobilePDFViewerConfig {
   maxScaleChange?: number;
   showProgress?: boolean;
   progressColor?: string;
-  viewportBufferPages?: number;
 }
 
 export interface MobilePDFViewerEmits {

@@ -35,7 +35,9 @@ const {
   applyTransform,
   constrainTranslateForRefs,
   resetPosition,
-  clearBoundaryCache
+  clearBoundaryCache,
+  startInertialScroll,
+  stopInertialScroll
 } = useTransform(mergedConfig.value);
 
 const {
@@ -53,6 +55,7 @@ let touchHandlers: TouchHandlers | null = null;
 
 // 初始化触摸事件处理器
 const initializeTouchHandlers = () => {
+  if (isPCByTouch()) return;
   touchHandlers = new TouchHandlers(
     mergedConfig.value,
     emit,
@@ -71,7 +74,9 @@ const initializeTouchHandlers = () => {
       clearBoundaryCache,
       constrainTranslateForRefs,
       applyTransform,
-      resetPosition
+      resetPosition,
+      startInertialScroll,
+      stopInertialScroll
     }
   );
 };
@@ -143,6 +148,11 @@ defineExpose({
   isLoading: () => isLoading.value,
   getPageCount: () => canvasList.value.length
 });
+
+const isPCByTouch = ()=>{
+  // PC通常不支持触摸
+  return !('ontouchstart' in window) && !navigator.maxTouchPoints;
+}
 </script>
 
 <template>
@@ -154,8 +164,8 @@ defineExpose({
     />
     <div
       ref="wrapperRef"
-      :class="['pdf-container', containerClass]"
-      class="mobile-pdf-container"
+      :class="['mobile-pdf-container', 'pdf-container' ,containerClass]"
+      :style="{overflow: isPCByTouch() ? 'auto' : 'hidden'}"
     >
       <div
         ref="innerRef"
@@ -184,7 +194,7 @@ defineExpose({
   padding: 0 10px;
   height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   user-select: none;
   -webkit-overflow-scrolling: touch;
 }

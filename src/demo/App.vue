@@ -25,7 +25,7 @@ const onScaleChange = (scale: number) => {
 <template>
 <div>
     <input type="file" @change="inputFile" />
-    <div style="height: 100vh">
+    <div style="height: 100vh;">
         <MobilePDFViewer
             ref="pdf_ref"
           @load-complete="onLoadComplete"

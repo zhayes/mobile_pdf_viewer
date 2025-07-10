@@ -11,6 +11,9 @@ export class TouchHandlers {
   private lastScale = 1;
   private lastDistance = 0;
 
+  // For velocity tracking
+  private moveHistory: { x: number; y: number; time: number }[] = [];
+
   // 双击检测
   private lastTouchTime = 0;
   private touchCount = 0;
@@ -36,9 +39,11 @@ export class TouchHandlers {
       constrainTranslateForRefs: (x: number, y: number, wrapperRef: HTMLElement, innerRef: HTMLElement) => { x: number; y: number };
       applyTransform: (scale: number, x: number, y: number, immediate?: boolean) => void;
       resetPosition: (emit: MobilePDFViewerEmits) => void;
+      startInertialScroll: (velocityX: number, velocityY: number) => void;
+      stopInertialScroll: () => void;
     }
   ) {
-    console.log(this.actions)
+
   }
 
   /**
@@ -46,6 +51,8 @@ export class TouchHandlers {
    */
   handleTouchStart = (e: TouchEvent) => {
     this.actions.clearBoundaryCache();
+    this.actions.stopInertialScroll?.();
+    this.moveHistory = [];
 
     if (e.touches.length === 1) {
       this.actions.setDragging(true);
@@ -66,19 +73,28 @@ export class TouchHandlers {
    */
   handleTouchMove = (e: TouchEvent) => {
     if (e.touches.length === 1 && this.getters.isDragging()) {
+      // Record history for inertia
+      this.moveHistory.push({
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        time: Date.now(),
+      });
+      // Keep history short
+      if (this.moveHistory.length > 5) {
+        this.moveHistory.shift();
+      }
+
       const newX = e.touches[0].clientX - this.startX;
       const newY = e.touches[0].clientY - this.startY;
 
-      if (this.getters.scale() > 1) {
-        e.preventDefault();
-        const constrained = this.actions.constrainTranslateForRefs(
-          newX,
-          newY,
-          this.getters.wrapperRef(),
-          this.getters.innerRef()
-        );
-        this.actions.applyTransform(this.getters.scale(), constrained.x, constrained.y, true);
-      }
+      e.preventDefault();
+      const constrained = this.actions.constrainTranslateForRefs(
+        newX,
+        newY,
+        this.getters.wrapperRef(),
+        this.getters.innerRef()
+      );
+      this.actions.applyTransform(this.getters.scale(), constrained.x, constrained.y);
     } else if (e.touches.length === 2) {
       e.preventDefault();
 
@@ -126,6 +142,20 @@ export class TouchHandlers {
   handleTouchEnd = (e: TouchEvent) => {
     const wasDragging = this.getters.isDragging();
     const wasPinching = this.getters.isPinching();
+
+    // Inertia logic
+    if (wasDragging && this.moveHistory.length > 2) {
+      const first = this.moveHistory[0];
+      const last = this.moveHistory[this.moveHistory.length - 1];
+      const timeDiff = last.time - first.time;
+
+      if (timeDiff > 10) { // Avoid division by zero or tiny numbers
+        const velocityX = (last.x - first.x) / timeDiff;
+        const velocityY = (last.y - first.y) / timeDiff;
+        this.actions.startInertialScroll?.(velocityX, velocityY);
+      }
+    }
+    this.moveHistory = [];
 
     this.actions.setDragging(false);
 

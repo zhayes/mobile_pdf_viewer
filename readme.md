@@ -56,16 +56,15 @@ onMounted(()=>{
 ```typescript
 interface MobilePDFViewerConfig {
   resolutionMultiplier?: number;    // 分辨率倍数，默认 3
-  minScale?: number;                // 最小缩放比例，默认 0.5
+  minScale?: number;                // 最小缩放比例，默认 1
   maxScale?: number;                // 最大缩放比例，默认 4
   scaleStep?: number;               // 缩放步长，默认 0.1
-  dampingFactor?: number;           // 阻尼系数，默认 0.85
+  dampingFactor?: number;           // 阻尼系数，默认 0.95
   boundaryPadding?: number;         // 边界填充，默认 50
   pinchSensitivity?: number;        // 捏合敏感度，默认 0.6
   maxScaleChange?: number;          // 最大缩放变化，默认 0.25
   showProgress?: boolean;           // 是否显示进度条，默认 true
   progressColor?: string;           // 进度条颜色，默认 '#007bff'
-  viewportBufferPages?: number;     // 视口缓冲页数，默认 2
 }
 ```
 

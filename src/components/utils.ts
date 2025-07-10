@@ -48,16 +48,46 @@ export const getBoundaryLimits = (
     return cachedLimits;
   }
 
-  const wrapperRect = wrapperRef.getBoundingClientRect();
-  const innerRect = innerRef.getBoundingClientRect();
+  // Get computed styles to account for padding set in CSS, which affects the coordinate system.
+  const computedStyle = window.getComputedStyle(wrapperRef);
+  const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+  const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+  const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+  const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
 
-  const scaledWidth = innerRect.width * scale;
-  const scaledHeight = innerRect.height * scale;
+  // Use layout dimensions which are unaffected by CSS transforms.
+  // The actual content area width is the clientWidth minus horizontal paddings.
+  const contentAreaWidth = wrapperRef.clientWidth - paddingLeft - paddingRight;
+  const contentAreaHeight = wrapperRef.clientHeight - paddingTop - paddingBottom;
 
-  const minX = Math.min(0, wrapperRect.width - scaledWidth - boundaryPadding);
-  const maxX = Math.max(0, boundaryPadding);
-  const minY = Math.min(0, wrapperRect.height - scaledHeight - boundaryPadding);
-  const maxY = Math.max(0, boundaryPadding);
+  // `innerRef` has `width: 100%` of its containing block, so its `clientWidth` is the content's base width at scale=1.
+  const contentBaseWidth = innerRef.clientWidth;
+  const contentBaseHeight = innerRef.scrollHeight;
+
+  const scaledWidth = contentBaseWidth * scale;
+  const scaledHeight = contentBaseHeight * scale;
+
+  let minX: number, maxX: number;
+  if (scaledWidth > contentAreaWidth) {
+    // Content is wider than container's content area, allow panning.
+    minX = contentAreaWidth - scaledWidth - boundaryPadding;
+    maxX = boundaryPadding;
+  } else {
+    // Content is narrower, no horizontal panning needed/allowed.
+    minX = 0;
+    maxX = 0;
+  }
+
+  let minY: number, maxY: number;
+  if (scaledHeight > contentAreaHeight) {
+    // Content is taller, allow vertical panning.
+    minY = contentAreaHeight - scaledHeight - boundaryPadding;
+    maxY = boundaryPadding;
+  } else {
+    // Content is shorter, no vertical panning needed/allowed.
+    minY = 0;
+    maxY = 0;
+  }
 
   return { minX, maxX, minY, maxY };
 };

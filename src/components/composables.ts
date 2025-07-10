@@ -1,5 +1,5 @@
-import { ref, computed, onUnmounted, nextTick } from 'vue';
-import { getDocument, GlobalWorkerOptions, PDFDocumentProxy } from 'pdfjs-dist';
+import { ref, computed, onUnmounted, nextTick, ShallowRef, shallowRef } from 'vue';
+import { getDocument, GlobalWorkerOptions, PDFDocumentProxy, type PDFDocumentLoadingTask } from 'pdfjs-dist';
 import { uid } from 'uid';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {
@@ -30,44 +30,70 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
   const translateY = ref(0);
   const isDragging = ref(false);
   const isPinching = ref(false);
-  const isTransforming = ref(false);
+
+  // For inertial scrolling
+  const velocityX = ref(0);
+  const velocityY = ref(0);
   const animationFrame = ref<number | null>(null);
-  const transformQueue = ref<TransformQueue | null>(null);
+  let _wrapperRef: HTMLElement | null = null;
+  let _innerRef: HTMLElement | null = null;
 
   // 边界限制缓存
   let cachedBoundaryLimits: BoundaryLimits | null = null;
   let lastBoundaryScale = 0;
 
-  /**
-   * 应用变换
-   */
-  const applyTransform = (newScale: number, newX: number, newY: number, immediate = false) => {
+  const stopInertialScroll = () => {
     if (animationFrame.value) {
       cancelAnimationFrame(animationFrame.value);
+      animationFrame.value = null;
     }
+    velocityX.value = 0;
+    velocityY.value = 0;
+  };
 
-    if (immediate) {
-      scale.value = newScale;
-      translateX.value = newX;
-      translateY.value = newY;
-      isTransforming.value = false;
+  const animationLoop = () => {
+    if (!_wrapperRef || !_innerRef) {
+      stopInertialScroll();
       return;
     }
 
-    transformQueue.value = { scale: newScale, x: newX, y: newY };
+    const newX = translateX.value + velocityX.value;
+    const newY = translateY.value + velocityY.value;
 
-    if (!isTransforming.value) {
-      isTransforming.value = true;
-      animationFrame.value = requestAnimationFrame(() => {
-        if (transformQueue.value) {
-          scale.value = transformQueue.value.scale;
-          translateX.value = transformQueue.value.x;
-          translateY.value = transformQueue.value.y;
-          transformQueue.value = null;
-        }
-        isTransforming.value = false;
-      });
+    const constrained = constrainTranslateForRefs(newX, newY, _wrapperRef, _innerRef);
+    translateX.value = constrained.x;
+    translateY.value = constrained.y;
+
+    if (constrained.x !== newX) velocityX.value = 0;
+    if (constrained.y !== newY) velocityY.value = 0;
+
+    velocityX.value *= config.dampingFactor;
+    velocityY.value *= config.dampingFactor;
+
+    if (Math.abs(velocityX.value) < 0.1 && Math.abs(velocityY.value) < 0.1) {
+      stopInertialScroll();
+      return;
     }
+    animationFrame.value = requestAnimationFrame(animationLoop);
+  };
+
+  const startInertialScroll = (vx: number, vy: number) => {
+    stopInertialScroll();
+    velocityX.value = vx * 25; // Velocity multiplier for a better feel
+    velocityY.value = vy * 25;
+    if (Math.abs(vx) > 0.1 || Math.abs(vy) > 0.1) {
+      animationFrame.value = requestAnimationFrame(animationLoop);
+    }
+  };
+
+  /**
+   * 应用变换
+   */
+  const applyTransform = (newScale: number, newX: number, newY: number) => {
+    stopInertialScroll();
+    scale.value = newScale;
+    translateX.value = newX;
+    translateY.value = newY;
   };
 
   /**
@@ -101,6 +127,10 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
     wrapperRef: HTMLElement | null,
     innerRef: HTMLElement | null
   ) => {
+    // Cache refs for the animation loop
+    _wrapperRef = wrapperRef;
+    _innerRef = innerRef;
+
     const boundaries = getBoundaryLimitsForRefs(wrapperRef, innerRef);
     return constrainTranslate(x, y, boundaries);
   };
@@ -109,7 +139,8 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
    * 重置位置
    */
   const resetPosition = (emit: MobilePDFViewerEmits) => {
-    applyTransform(1, 0, 0, true);
+    stopInertialScroll();
+    applyTransform(1, 0, 0);
     isPinching.value = false;
     cachedBoundaryLimits = null;
     emit('scale-change', 1);
@@ -126,16 +157,12 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
    * 计算变换样式
    */
   const transformStyle = computed(() => {
-    const x = scale.value > 1 ? translateX.value : 0;
-    const y = scale.value > 1 ? translateY.value : 0;
-    const s = Math.max(scale.value, 1);
-
     return {
-      transform: `translate3d(${x}px, ${y}px, 0) scale(${s})`,
+      transform: `translate3d(${translateX.value}px, ${translateY.value}px, 0) scale(${scale.value})`,
       transformOrigin: '0 0',
-      transition: (isDragging.value || isPinching.value) ? 'none' : 'transform 0.3s ease-out',
-      touchAction: scale.value > 1 ? 'none' : 'auto',
-      willChange: (isDragging.value || isPinching.value) ? 'transform' : 'auto'
+      transition: (isDragging.value || animationFrame.value !== null) ? 'none' : 'transform 0.3s ease-out',
+      touchAction: 'none',
+      willChange: (isDragging.value || isPinching.value || animationFrame.value !== null) ? 'transform' : 'auto'
     };
   });
 
@@ -151,12 +178,13 @@ export const useTransform = (config: Required<MobilePDFViewerConfig>) => {
     translateY,
     isDragging,
     isPinching,
-    isTransforming,
     transformStyle,
     applyTransform,
     constrainTranslateForRefs,
     resetPosition,
-    clearBoundaryCache
+    clearBoundaryCache,
+    startInertialScroll,
+    stopInertialScroll
   };
 };
 
@@ -169,6 +197,7 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
   const loadingProgress = ref(0);
   const baseScale = ref(1);
   const observer = ref<IntersectionObserver | null>(null);
+  const pdfDoc = shallowRef<PDFDocumentProxy | null>(null);
 
   /**
    * 渲染单页
@@ -214,8 +243,11 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
         wrapperRef.scrollTop = 0;
       }
 
+      cleanupPDF();
+
       const loadingTask = getDocument(source);
-      const pdf = await loadingTask.promise;
+      pdfDoc.value = await loadingTask.promise;
+      const pdf = pdfDoc.value;
 
       await nextTick();
 
@@ -224,8 +256,6 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       const viewport = page.getViewport({ scale: 1 });
 
       baseScale.value = (wrapperWidth / viewport.width) * config.resolutionMultiplier;
-
-      cleanupObserver();
 
       canvasList.value = Array(pdf.numPages).fill(null).map(() => ({
         renderStatus: 'pending' as const,
@@ -299,8 +329,19 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
     } catch (err) { }
   };
 
-  onUnmounted(() => {
+  /**
+   * 清理PDF相关资源
+   */
+  const cleanupPDF = () => {
+    if (pdfDoc.value) {
+      pdfDoc.value.destroy();
+      pdfDoc.value = null;
+    }
     cleanupObserver();
+  };
+
+  onUnmounted(() => {
+    cleanupPDF();
   });
 
   return {
