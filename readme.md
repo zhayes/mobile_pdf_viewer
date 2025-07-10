@@ -23,6 +23,7 @@
     <div style="height: 100vh">
         <MobilePDFViewer
           ref="pdfViewerRef"
+          source="path/to/your/pdf/file.pdf"
           @load-complete="onLoadComplete"
           @scale-change="onScaleChange"
         />
@@ -31,7 +32,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import MobilePDFViewer, { type PDFSourceDataOption } from 'vue3-mobile-pdf-viewer';
+import MobilePDFViewer from 'vue3-mobile-pdf-viewer'; // 假设这是包名
+
 const pdfViewerRef = ref();
 
 const onLoadComplete = (pageCount: number) => {
@@ -42,29 +44,34 @@ const onScaleChange = (scale: number) => {
   console.log(`当前缩放比例: ${scale}`);
 };
 
-
-onMounted(()=>{
-  const pdfSource = ref<PDFSourceDataOption>('path/to/your/pdf/file.pdf');
-
-  pdfViewerRef.value?.loadPDF(source);
-})
+// 也可以通过暴露的方法加载PDF
+// onMounted(()=>{
+//   pdfViewerRef.value?.loadPDF('path/to/your/pdf/file.pdf');
+// })
 </script>
 ```
 
-### 配置选项
+### Props
+
+| Prop             | Type                  | Description                                                                                                                            | Default |
+| ---------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `source`         | `PDFSourceDataOption` | PDF 文件来源。可以是 URL、TypedArray (Uint8Array)、或 `pdfjs-dist` 的 `getDocument` 支持的任何其他格式。 | `undefined` |
+| `containerClass` | `string`              | 应用于容器元素的自定义 CSS 类。                                                                                                        | `''`    |
+| `canvasClass`    | `string`              | 应用于每个 PDF 页面 `<canvas>` 元素的自定义 CSS 类。                                                                                    | `''`    |
+| `config`         | `MobilePDFViewerConfig` | 一个包含查看器行为配置选项的对象。                                                                                                       | `{}`    |
+
+### `config` 对象
+
+`config` prop 接受一个对象，用于详细配置查看器的行为：
 
 ```typescript
 interface MobilePDFViewerConfig {
   resolutionMultiplier?: number;    // 分辨率倍数，默认 3
   minScale?: number;                // 最小缩放比例，默认 1
   maxScale?: number;                // 最大缩放比例，默认 4
-  scaleStep?: number;               // 缩放步长，默认 0.1
-  dampingFactor?: number;           // 阻尼系数，默认 0.95
-  boundaryPadding?: number;         // 边界填充，默认 50
-  pinchSensitivity?: number;        // 捏合敏感度，默认 0.6
-  maxScaleChange?: number;          // 最大缩放变化，默认 0.25
-  showProgress?: boolean;           // 是否显示进度条，默认 true
-  progressColor?: string;           // 进度条颜色，默认 '#007bff'
+  dampingFactor?: number;           // 拖拽惯性滑动的阻尼系数，默认 0.95
+  boundaryPadding?: number;         // 边界填充，用于限制拖拽范围，默认 50
+  pinchSensitivity?: number;        // 双指缩放的敏感度，默认 0.6
 }
 ```
 
@@ -82,6 +89,7 @@ interface MobilePDFViewerConfig {
 const pdfViewerRef = ref();
 
 // 加载 PDF
+// `source` 的类型为 `PDFSourceDataOption`
 pdfViewerRef.value?.loadPDF(source);
 
 // 重置位置

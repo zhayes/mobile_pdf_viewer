@@ -6,13 +6,9 @@ export interface MobilePDFViewerConfig {
   resolutionMultiplier?: number;
   minScale?: number;
   maxScale?: number;
-  scaleStep?: number;
   dampingFactor?: number;
   boundaryPadding?: number;
   pinchSensitivity?: number;
-  maxScaleChange?: number;
-  showProgress?: boolean;
-  progressColor?: string;
 }
 
 export interface MobilePDFViewerEmits {

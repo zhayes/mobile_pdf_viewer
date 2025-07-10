@@ -353,23 +353,3 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
     cleanupObserver
   };
 };
-
-/**
- * 进度条相关的组合式函数
- */
-export const useProgress = (config: Required<MobilePDFViewerConfig>) => {
-  const progressStyle = computed(() => ({
-    position: 'absolute' as const,
-    top: '0',
-    left: '0',
-    width: `${0}%`,
-    height: '2px',
-    backgroundColor: config.progressColor,
-    transition: 'width 0.3s ease',
-    zIndex: 9999
-  }));
-
-  return {
-    progressStyle
-  };
-};

@@ -4,13 +4,9 @@ export const DEFAULT_CONFIG: Required<MobilePDFViewerConfig> = {
   resolutionMultiplier: 3,
   minScale: 1,
   maxScale: 4,
-  scaleStep: 0.1,
   dampingFactor: 0.95,
   boundaryPadding: 50,
-  pinchSensitivity: 0.6,
-  maxScaleChange: 0.25,
-  showProgress: true,
-  progressColor: '#007bff'
+  pinchSensitivity: 0.6
 };
 
 export const DOUBLE_CLICK_TIMEOUT = 300;

@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { MobilePDFViewerProps, MobilePDFViewerEmits } from './types';
 import { DEFAULT_CONFIG } from './constants';
-import { useTransform, usePDFRenderer, useProgress } from './composables';
+import { useTransform, usePDFRenderer } from './composables';
 import { TouchHandlers } from './touchHandlers';
 
 // Props和Emits定义
@@ -47,8 +47,6 @@ const {
   loadPDF,
   cleanupObserver
 } = usePDFRenderer(mergedConfig.value);
-
-const { progressStyle } = useProgress(mergedConfig.value);
 
 // 触摸事件处理器
 let touchHandlers: TouchHandlers | null = null;
@@ -98,12 +96,6 @@ const loadPDFDocument = async (source?: typeof props.source) => {
 const resetPositionMethod = () => {
   resetPosition(emit);
 };
-
-// 进度条样式（带动态宽度）
-const dynamicProgressStyle = computed(() => ({
-  ...progressStyle.value,
-  width: `${loadingProgress.value}%`
-}));
 
 // 组件挂载
 onMounted(() => {
@@ -158,18 +150,13 @@ const isPCByTouch = ()=>{
 <template>
   <div class="mobile-pdf-viewer">
     <div
-      v-if="isLoading && mergedConfig.showProgress"
-      :style="dynamicProgressStyle"
-      class="pdf-progress-bar"
-    />
-    <div
       ref="wrapperRef"
       :class="['mobile-pdf-container', 'pdf-container' ,containerClass]"
       :style="{overflow: isPCByTouch() ? 'auto' : 'hidden'}"
     >
       <div
         ref="innerRef"
-        style="transformStyle"
+        :style="transformStyle"
         class="pdf-inner"
       >
         <div
@@ -219,15 +206,5 @@ const isPCByTouch = ()=>{
   image-rendering: crisp-edges;
   image-rendering: pixelated;
   transform: translateZ(0);
-}
-
-.pdf-progress-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 2px;
-  background-color: #007bff;
-  transition: width 0.3s ease;
-  z-index: 9999;
 }
 </style>
