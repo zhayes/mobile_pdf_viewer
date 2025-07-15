@@ -214,40 +214,28 @@ export class TouchHandlers {
    * 处理双击事件
    */
   private handleDoubleClick = (e: TouchEvent | MouseEvent) => {
+    if (e instanceof MouseEvent) return;
+
     e.preventDefault();
 
     const isNormalScale = Math.abs(this.getters.scale() - 1) < SCALE_THRESHOLD;
 
-    if (isNormalScale) {
-      const rect = this.getters.wrapperRef()?.getBoundingClientRect();
-      if (rect) {
-        let centerX: number, centerY: number;
+    const rect = this.getters.wrapperRef()?.getBoundingClientRect();
+    if (rect) {
+      let centerX: number, centerY: number;
 
-        if (e instanceof MouseEvent) {
-          centerX = e.clientX - rect.left;
-          centerY = e.clientY - rect.top;
-        } else {
-          const touch = e.changedTouches?.[0] || e.touches?.[0];
-          centerX = touch?.clientX - rect.left || rect.width / 2;
-          centerY = touch?.clientY - rect.top || rect.height / 2;
-        }
+      const touch = e.changedTouches?.[0] || e.touches?.[0];
 
-        const newScale = ZOOM_SCALE;
-        const newX = centerX - (centerX - this.getters.translateX()) * newScale;
-        const newY = centerY - (centerY - this.getters.translateY()) * newScale;
+      centerX = touch.clientX - rect.left;
+      centerY = touch.clientY - rect.top;
 
-        const constrained = this.actions.constrainTranslateForRefs(
-          newX,
-          newY,
-          this.getters.wrapperRef(),
-          this.getters.innerRef()
-        );
-        this.actions.applyTransform(newScale, constrained.x, constrained.y);
+      const newScale = isNormalScale ? ZOOM_SCALE : 1;
+      const newX = isNormalScale ? centerX - (centerX - this.getters.translateX()) * newScale  : 0;
+      const newY = isNormalScale ? centerY - (centerY - this.getters.translateY()) * newScale : centerY - (centerY - this.getters.translateY()) / this.getters.scale()
 
-        this.emit('scale-change', newScale);
-      }
-    } else {
-      this.actions.resetPosition(this.emit);
+      this.actions.applyTransform(newScale, newX, newY);
+
+      this.emit('scale-change', newScale);
     }
   };
 
