@@ -207,12 +207,20 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
   /**
    * 初始化并加载新的 PDF 文档。
    */
+
+  type TransformAction = ReturnType<typeof useTransform>;
+
+  type PickFunctionKeys<T> = {
+    [K in keyof T as T[K] extends Function ? K : never]: T[K]
+  };
+
   const loadPDF = async (
     source: PDFSourceDataOption,
     wrapperRef: HTMLElement | null,
     innerRef: HTMLElement | null,
     canvasClass: string,
-    emit: MobilePDFViewerEmits
+    emit: MobilePDFViewerEmits,
+    transformAction: PickFunctionKeys<TransformAction>
   ) => {
     try {
       isLoading.value = true;
@@ -249,6 +257,8 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
       }));
 
       await nextTick();
+
+      transformAction.resetPosition(emit);
 
       // 设置 IntersectionObserver 用于虚拟滚动。
       observer.value = new IntersectionObserver((entries) => {

@@ -15,7 +15,6 @@ const inputFile = async(e:any) => {
 }
 
 const onLoadComplete = (pageCount: number) => {
-  pdf_ref.value!.resetPosition();
    console.log(`PDF 加载完成，共 ${pageCount} 页`);
 };
 

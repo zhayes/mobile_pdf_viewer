@@ -88,7 +88,15 @@ const loadPDFDocument = async (source?: typeof props.source) => {
     wrapperRef.value,
     innerRef.value,
     props.canvasClass,
-    emit
+    emit,
+    {
+      applyTransform,
+      constrainTranslateForRefs,
+      resetPosition,
+      clearBoundaryCache,
+      startInertialScroll,
+      stopInertialScroll
+    }
   );
 };
 
