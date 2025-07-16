@@ -1,6 +1,7 @@
 import { MobilePDFViewerConfig, MobilePDFViewerEmits } from './types';
 import { getDistance, getTouchCenter } from './utils';
 import { DOUBLE_CLICK_TIMEOUT, DOUBLE_CLICK_DISTANCE, SCALE_THRESHOLD, ZOOM_SCALE } from './constants';
+import { nextTick } from 'vue';
 
 /**
  * 触摸事件处理器
@@ -213,7 +214,7 @@ export class TouchHandlers {
   /**
    * 处理双击事件
    */
-  private handleDoubleClick = (e: TouchEvent | MouseEvent) => {
+  private handleDoubleClick = async(e: TouchEvent | MouseEvent) => {
     if (e instanceof MouseEvent) return;
 
     e.preventDefault();
@@ -221,6 +222,7 @@ export class TouchHandlers {
     const isNormalScale = Math.abs(this.getters.scale() - 1) < SCALE_THRESHOLD;
 
     const rect = this.getters.wrapperRef()?.getBoundingClientRect();
+
     if (rect) {
       let centerX: number, centerY: number;
 
@@ -230,12 +232,24 @@ export class TouchHandlers {
       centerY = touch.clientY - rect.top;
 
       const newScale = isNormalScale ? ZOOM_SCALE : 1;
-      const newX = isNormalScale ? centerX - (centerX - this.getters.translateX()) * newScale  : 0;
-      const newY = isNormalScale ? centerY - (centerY - this.getters.translateY()) * newScale : centerY - (centerY - this.getters.translateY()) / this.getters.scale()
+      const newX = isNormalScale ? (this.getters.translateX() - centerX) * newScale + centerX : 0;
+      const newY = isNormalScale ? (this.getters.translateY() - centerY) * newScale + centerY : (this.getters.translateY() - centerY) / this.getters.scale() + centerY;
 
       this.actions.applyTransform(newScale, newX, newY);
 
       this.emit('scale-change', newScale);
+
+      await nextTick()
+
+      const constrained = this.actions.constrainTranslateForRefs(
+        newX,
+        newY,
+        this.getters.wrapperRef(),
+        this.getters.innerRef()
+      );
+
+      this.actions.applyTransform(newScale, constrained.x, constrained.y, true);
+
     }
   };
 

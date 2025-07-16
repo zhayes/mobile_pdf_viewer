@@ -9,13 +9,14 @@ const inputFile = async(e:any) => {
   const file = target.files?.[0] as File;
 
   const buffer = await file.arrayBuffer();
-  pdf_ref.value!.resetPosition();
+
   pdf_ref.value!.loadPDF(buffer);
 
 }
 
 const onLoadComplete = (pageCount: number) => {
-  console.log(`PDF 加载完成，共 ${pageCount} 页`);
+  pdf_ref.value!.resetPosition();
+   console.log(`PDF 加载完成，共 ${pageCount} 页`);
 };
 
 const onScaleChange = (scale: number) => {
