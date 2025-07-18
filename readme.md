@@ -1,3 +1,5 @@
+Recommend [pdf-mobile](https://www.npmjs.com/package/mobile-pdf), which does not rely on any framework
+
 [English](#english) | [中文](#中文)
 
 ---

@@ -284,7 +284,7 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
           } else {
             // 目标离开视口，无论渲染状态如何都执行清理。
             const canvas = item.canvas;
-            if (canvas && entry.target instanceof HTMLDivElement && entry.target.contains(canvas)) {
+            if (canvas && canvasList.value.length>1 && entry.target instanceof HTMLDivElement && entry.target.contains(canvas)) {
               entry.target.removeChild(canvas);
               item.canvas = null;
               item.renderStatus = 'pending';
