@@ -1,4 +1,5 @@
 import { getDocument, type RenderTask } from 'pdfjs-dist';
+import { ShallowRef } from 'vue';
 
 export type PDFSourceDataOption = Parameters<typeof getDocument>[0];
 
@@ -31,7 +32,7 @@ export interface CanvasItem {
   divEl: HTMLDivElement | null;
   renderStatus: 'pending' | 'loading' | 'complete';
   key?: string;
-  rendering_task?: RenderTask | null;
+  rendering_task?: ShallowRef<RenderTask|null>;
 }
 
 export interface BoundaryLimits {

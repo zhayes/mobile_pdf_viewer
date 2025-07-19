@@ -1,5 +1,5 @@
-import { ref, computed, onUnmounted, nextTick, shallowRef } from 'vue';
-import { getDocument, GlobalWorkerOptions, PDFDocumentProxy } from 'pdfjs-dist';
+import { ref, computed, onUnmounted, nextTick, shallowRef, unref } from 'vue';
+import { getDocument, GlobalWorkerOptions, PDFDocumentProxy, type PDFPageProxy } from 'pdfjs-dist';
 import { uid } from 'uid';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {
@@ -182,13 +182,19 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
    * 将单个页面渲染到 canvas 上。
    */
   const renderPage = async (pdf: PDFDocumentProxy, pageNum: number, canvas: HTMLCanvasElement) => {
+    // 在异步渲染开始前，再次检查PDF文档是否已被销毁，防止在组件卸载后继续执行渲染。
+    if (!pdfDoc.value) {
+      return;
+    }
+
+    let page:PDFPageProxy|null = null;
+    const item = canvasList.value[pageNum - 1];
+
     try {
-      const page = await pdf.getPage(pageNum);
+      page = await pdf.getPage(pageNum);
       const viewport = page.getViewport({ scale: baseScale.value });
-      const item = canvasList.value[pageNum - 1];
 
       if (!canvas) {
-        page.cleanup();
         item.renderStatus = 'pending';
         return;
       }
@@ -202,21 +208,21 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
 
       item.renderStatus = 'loading';
 
-      const task = page.render({ canvasContext: context, viewport });
-      item.rendering_task = task;
+      item.rendering_task = page.render({ canvasContext: context, viewport });
 
-      await task.promise;
-
-      // 关键：清理页面资源，防止内存泄漏。
-      page.cleanup();
-      item.rendering_task = null;
+      await unref(item.rendering_task).promise;
 
       item.renderStatus = 'complete';
       if (item.divEl) {
         item.divEl.style.height = (viewport.height / config.resolutionMultiplier) + 'px';
       }
     } catch (err) {
-      console.log(err);
+      //console.log(err);
+    } finally {
+      page?.cleanup();
+      if (item.rendering_task) {
+        item.rendering_task = null;
+      }
     }
   };
 
@@ -270,7 +276,7 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
         key:  uid(),
         canvas: null,
         divEl: null,
-        rendering_task: null
+        rendering_task: shallowRef(null)
       }));
 
       await nextTick();
@@ -299,11 +305,16 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
               updateProgress((index + 1) / pdf.numPages, loadingProgress, emit);
             }
           } else {
-            // 目标离开视口，无论渲染状态如何都执行清理。
+            // 目标离开视口，清理资源。
             const canvas = item.canvas;
-            if (canvas && canvasList.value.length>1 && entry.target instanceof HTMLDivElement && entry.target.contains(canvas)) {
-              item.rendering_task?.cancel();
-              item.rendering_task = null;
+
+            // 仅当页面仍在渲染中时，才尝试取消任务。
+            if (item.renderStatus === 'loading' && item.rendering_task) {
+              item.rendering_task.cancel();
+              item.rendering_task = null; // 在取消后立即清空
+            }
+
+            if (canvas && canvasList.value.length > 1 && entry.target instanceof HTMLDivElement && entry.target.contains(canvas)) {
               entry.target.removeChild(canvas);
               item.canvas = null;
               item.renderStatus = 'pending';
