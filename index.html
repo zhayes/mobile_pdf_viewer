@@ -6,6 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no viewport-fit=cover">
     <title>demo</title>
   </head>
+  <script>
+  var script = document.createElement('script');
+  script.src = "https://cdn.jsdelivr.net/npm/eruda";
+
+  script.onload = function(){
+    if(window.eruda){
+      eruda.init();
+    }
+  }
+  document.head.appendChild(script);
+  </script>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/demo/main.ts"></script>

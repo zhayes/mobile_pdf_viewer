@@ -182,25 +182,41 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
    * 将单个页面渲染到 canvas 上。
    */
   const renderPage = async (pdf: PDFDocumentProxy, pageNum: number, canvas: HTMLCanvasElement) => {
-    const page = await pdf.getPage(pageNum);
-    const viewport = page.getViewport({ scale: baseScale.value });
-    const context = canvas.getContext('2d')!;
+    try {
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: baseScale.value });
+      const item = canvasList.value[pageNum - 1];
 
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    canvas.style.width = `100%`;
+      if (!canvas) {
+        page.cleanup();
+        item.renderStatus = 'pending';
+        return;
+      }
 
-    const item = canvasList.value[pageNum - 1];
-    item.renderStatus = 'loading';
+      const context = canvas.getContext('2d')!;
 
-    await page.render({ canvasContext: context, viewport }).promise;
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      canvas.style.width = `100%`;
 
-    // 关键：清理页面资源，防止内存泄漏。
-    page.cleanup();
 
-    item.renderStatus = 'complete';
-    if(item.divEl) {
+      item.renderStatus = 'loading';
+
+      const task = page.render({ canvasContext: context, viewport });
+      item.rendering_task = task;
+
+      await task.promise;
+
+      // 关键：清理页面资源，防止内存泄漏。
+      page.cleanup();
+      item.rendering_task = null;
+
+      item.renderStatus = 'complete';
+      if (item.divEl) {
         item.divEl.style.height = (viewport.height / config.resolutionMultiplier) + 'px';
+      }
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -253,7 +269,8 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
         renderStatus: 'pending' as const,
         key:  uid(),
         canvas: null,
-        divEl: null
+        divEl: null,
+        rendering_task: null
       }));
 
       await nextTick();
@@ -285,6 +302,8 @@ export const usePDFRenderer = (config: Required<MobilePDFViewerConfig>) => {
             // 目标离开视口，无论渲染状态如何都执行清理。
             const canvas = item.canvas;
             if (canvas && canvasList.value.length>1 && entry.target instanceof HTMLDivElement && entry.target.contains(canvas)) {
+              item.rendering_task?.cancel();
+              item.rendering_task = null;
               entry.target.removeChild(canvas);
               item.canvas = null;
               item.renderStatus = 'pending';

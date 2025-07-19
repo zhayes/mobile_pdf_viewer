@@ -25,11 +25,12 @@ const onScaleChange = (scale: number) => {
 <template>
 <div>
     <input type="file" @change="inputFile" />
-    <div style="height: 100vh;">
+    <div style="height: calc(100vh - 20px);">
         <MobilePDFViewer
             ref="pdf_ref"
-          @load-complete="onLoadComplete"
-          @scale-change="onScaleChange"
+            @load-complete="onLoadComplete"
+            @scale-change="onScaleChange"
+            :config="{minScale: 0.5}"
         />
     </div>
 </div>

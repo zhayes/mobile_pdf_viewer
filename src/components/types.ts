@@ -1,4 +1,4 @@
-import { getDocument } from 'pdfjs-dist';
+import { getDocument, type RenderTask } from 'pdfjs-dist';
 
 export type PDFSourceDataOption = Parameters<typeof getDocument>[0];
 
@@ -31,6 +31,7 @@ export interface CanvasItem {
   divEl: HTMLDivElement | null;
   renderStatus: 'pending' | 'loading' | 'complete';
   key?: string;
+  rendering_task?: RenderTask | null;
 }
 
 export interface BoundaryLimits {
