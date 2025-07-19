@@ -1,6 +1,10 @@
-Recommend [pdf-mobile](https://www.npmjs.com/package/mobile-pdf), which does not rely on any framework
+## Recommend [mobile-pdf](https://www.npmjs.com/package/mobile-pdf), which does not rely on any framework
+
 
 [English](#english) | [中文](#中文)
+
+[![License](https://img.shields.io/npm/l/vue3-mobile-pdf-viewer.svg)](https://github.com/zhayes/vue3-mobile-pdf-viewer/blob/main/LICENSE)
+[![NPM Downloads](https://img.shields.io/npm/dm/vue3-mobile-pdf-viewer.svg)](https://www.npmjs.com/package/vue3-mobile-pdf-viewer)
 
 ---
 
